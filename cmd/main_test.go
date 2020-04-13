@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -29,6 +30,19 @@ func Test_PostComment(t *testing.T) {
 
 	then.the_returned_status_code_should_be(http.StatusNoContent).and().
 		the_comment_should_be_saved_in_gitlab()
+}
+
+func Test_GetComments(t *testing.T) {
+	given, when, then := NewMainTest(t)
+
+	given.a_valid_comment().and().
+		i_post_the_comment().and().
+		i_post_the_comment()
+
+	when.i_get_the_comments()
+
+	then.the_returned_status_code_should_be(http.StatusOK).and().
+		there_should_be_n_comments_returned(2)
 }
 
 func NewMainTest(t *testing.T) (*mainTest, *mainTest, *mainTest) {
@@ -57,19 +71,40 @@ func (m *mainTest) and() *mainTest {
 	return m
 }
 
-func (m *mainTest) a_valid_comment() {
+func (m *mainTest) a_valid_comment() *mainTest {
 	m.comment = gic.Comment{
 		Subject: "subject",
 		Body:    "body",
 	}
+	return m
 }
 
-func (m *mainTest) i_post_the_comment() {
+func (m *mainTest) i_post_the_comment() *mainTest {
 	b, err := json.Marshal(m.comment)
 	require.NoError(m.t, err)
 	response, err := http.Post(fmt.Sprintf("%s/topics/test-topic/comments/", baseUrl), "application/json", bytes.NewBuffer(b))
 	require.NoError(m.t, err)
 	m.response = response
+	return m
+}
+
+func (m *mainTest) i_get_the_comments() *mainTest {
+	response, err := http.Get(fmt.Sprintf("%s/topics/test-topic/comments", baseUrl))
+	require.NoError(m.t, err)
+	m.response = response
+	return m
+}
+
+func (m *mainTest) there_should_be_n_comments_returned(n int) *mainTest {
+	var comments []*gic.Comment
+	defer m.response.Body.Close()
+	var b []byte
+	_, err := m.response.Body.Read(b)
+	require.NoError(m.t, err)
+	err = json.Unmarshal(b, comments)
+	require.NoError(m.t, err)
+	require.Len(m.t, comments, n)
+	return m
 }
 
 func TestMain(m *testing.M) {
@@ -92,11 +127,11 @@ func runGitlabMock() {
 func (g *gitlabMock) start() {
 	r := gin.Default()
 	r.POST("/api/v4/projects/:project/issues", g.handlePostIssues)
+	r.GET("/api/v4/projects/:project/issues", g.handleGetIssues)
 	r.Run(":8081")
 }
 
-func (g *gitlabMock) handlePostIssues(c *gin.Context) {
-	response := `
+var response = `
 {
 "project_id" : 4,
 "id" : 84,
@@ -153,6 +188,18 @@ func (g *gitlabMock) handlePostIssues(c *gin.Context) {
 "completed_count":0
 }
 }`
+
+func (g *gitlabMock) handlePostIssues(c *gin.Context) {
 	c.Writer.Write([]byte(response))
 	g.Comments = append(g.Comments, gic.Comment{})
+}
+
+func (g *gitlabMock) handleGetIssues(c *gin.Context) {
+	issues := "["
+	for _, _ = range g.Comments {
+		issues = fmt.Sprintf("%s%s,", issues, response)
+	}
+	issues = strings.TrimRight(issues, ",")
+	issues = fmt.Sprintf("%s]", issues)
+	c.Writer.Write([]byte(issues))
 }

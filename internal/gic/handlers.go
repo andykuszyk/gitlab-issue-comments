@@ -1,6 +1,7 @@
 package gic
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/swag"
@@ -31,11 +32,32 @@ func init() {
 }
 
 func GetComments(c *gin.Context) {
-
+	topic := c.Param("topicName")
+	issues, _, err := client.Issues.ListProjectIssues(topic, &gitlab.ListProjectIssuesOptions{})
+	if err != nil {
+		log.Println(err)
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	comments := []Comment{}
+	for _, issue := range issues {
+		comments = append(comments, Comment{
+			Subject: issue.Title,
+			Body:    issue.Description,
+		})
+	}
+	bytes, err := json.Marshal(comments)
+	if err != nil {
+		log.Println(err)
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	c.Writer.Write(bytes)
 }
 
 func PostComments(c *gin.Context) {
-	_, _, err := client.Issues.CreateIssue("", &gitlab.CreateIssueOptions{
+	topic := c.Param("topicName")
+	_, _, err := client.Issues.CreateIssue(topic, &gitlab.CreateIssueOptions{
 		Title:       swag.String(""),
 		Description: swag.String(""),
 	})
