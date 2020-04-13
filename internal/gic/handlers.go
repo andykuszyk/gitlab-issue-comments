@@ -1,9 +1,11 @@
 package gic
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/swag"
 	"github.com/xanzy/go-gitlab"
+	"log"
 	"net/http"
 	"os"
 )
@@ -38,7 +40,9 @@ func PostComments(c *gin.Context) {
 		Description: swag.String(""),
 	})
 	if err != nil {
+		log.Println(err)
 		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Writer.Write([]byte(fmt.Sprintf("%e", err)))
 		return
 	}
 	c.Writer.WriteHeader(http.StatusNoContent)

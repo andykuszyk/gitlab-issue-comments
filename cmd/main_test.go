@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/andykuszyk/gitlab-issue-comments/internal/gic"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
@@ -89,5 +90,69 @@ func runGitlabMock() {
 }
 
 func (g *gitlabMock) start() {
+	r := gin.Default()
+	r.POST("/api/v4/projects/:project/issues", g.handlePostIssues)
+	r.Run(":8081")
+}
 
+func (g *gitlabMock) handlePostIssues(c *gin.Context) {
+	response := `
+{
+"project_id" : 4,
+"id" : 84,
+"created_at" : "2016-01-07T12:44:33.959Z",
+"iid" : 14,
+"title" : "Issues with auth",
+"state" : "opened",
+"assignees" : [],
+"assignee" : null,
+"labels" : [
+"bug"
+],
+"upvotes": 4,
+"downvotes": 0,
+"merge_requests_count": 0,
+"author" : {
+"name" : "Alexandra Bashirian",
+"avatar_url" : null,
+"state" : "active",
+"web_url" : "https://gitlab.example.com/eileen.lowe",
+"id" : 18,
+"username" : "eileen.lowe"
+},
+"description" : null,
+"updated_at" : "2016-01-07T12:44:33.959Z",
+"closed_at" : null,
+"closed_by" : null,
+"milestone" : null,
+"subscribed" : true,
+"user_notes_count": 0,
+"due_date": null,
+"web_url": "http://example.com/my-group/my-project/issues/14",
+"references": {
+"short": "#14",
+"relative": "#14",
+"full": "my-group/my-project#14"
+},
+"time_stats": {
+"time_estimate": 0,
+"total_time_spent": 0,
+"human_time_estimate": null,
+"human_total_time_spent": null
+},
+"confidential": false,
+"discussion_locked": false,
+"_links": {
+"self": "http://example.com/api/v4/projects/1/issues/2",
+"notes": "http://example.com/api/v4/projects/1/issues/2/notes",
+"award_emoji": "http://example.com/api/v4/projects/1/issues/2/award_emoji",
+"project": "http://example.com/api/v4/projects/1"
+},
+"task_completion_status":{
+"count":0,
+"completed_count":0
+}
+}`
+	c.Writer.Write([]byte(response))
+	g.Comments = append(g.Comments, gic.Comment{})
 }
