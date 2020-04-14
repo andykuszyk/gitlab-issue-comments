@@ -7,6 +7,7 @@ import (
 	"github.com/andykuszyk/gitlab-issue-comments/internal/gic"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -46,6 +47,7 @@ func Test_GetComments(t *testing.T) {
 }
 
 func NewMainTest(t *testing.T) (*mainTest, *mainTest, *mainTest) {
+	gitlab.Comments = []gic.Comment{}
 	test := &mainTest{
 		t: t,
 	}
@@ -89,19 +91,22 @@ func (m *mainTest) i_post_the_comment() *mainTest {
 }
 
 func (m *mainTest) i_get_the_comments() *mainTest {
-	response, err := http.Get(fmt.Sprintf("%s/topics/test-topic/comments", baseUrl))
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/topics/test-topic/comments", baseUrl), nil)
+	require.NoError(m.t, err)
+	request.Header.Add("content-type", "application/json")
+	response, err := http.DefaultClient.Do(request)
 	require.NoError(m.t, err)
 	m.response = response
 	return m
 }
 
 func (m *mainTest) there_should_be_n_comments_returned(n int) *mainTest {
-	var comments []*gic.Comment
+	var comments []gic.Comment
 	defer m.response.Body.Close()
-	var b []byte
-	_, err := m.response.Body.Read(b)
+	b, err := ioutil.ReadAll(m.response.Body)
 	require.NoError(m.t, err)
-	err = json.Unmarshal(b, comments)
+	require.NotEmpty(m.t, string(b))
+	err = json.Unmarshal(b, &comments)
 	require.NoError(m.t, err)
 	require.Len(m.t, comments, n)
 	return m

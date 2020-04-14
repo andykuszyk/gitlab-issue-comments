@@ -40,6 +40,7 @@ func GetComments(c *gin.Context) {
 		return
 	}
 	comments := []Comment{}
+	log.Printf("Found %d issues\n", len(issues))
 	for _, issue := range issues {
 		comments = append(comments, Comment{
 			Subject: issue.Title,
@@ -47,6 +48,7 @@ func GetComments(c *gin.Context) {
 		})
 	}
 	bytes, err := json.Marshal(comments)
+	log.Printf("Marshalled %d comments into the string: %s", len(comments), string(bytes))
 	if err != nil {
 		log.Println(err)
 		c.Writer.WriteHeader(http.StatusInternalServerError)
