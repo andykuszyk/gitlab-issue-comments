@@ -4,5 +4,14 @@ gofmt:
 test: gofmt
 	GITLAB_URL="http://localhost:8081" GITLAB_TOKEN="token" go test ./... -v
 
-watch:
+watch-test:
 	find . | grep -v .git | grep -e 'go$$' | entr -c make test 
+
+up:
+	docker-compose up --force-recreate --build -d
+
+watch-up:
+	find . | grep -v .git | entr -c make up 
+
+build-gic:
+	docker build -t gic .
