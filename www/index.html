@@ -62,6 +62,12 @@
                     ]
                 }
             })
+
+            $.get('http://localhost:8081/topics/18159567/comments', function(data) {
+                for(d of data) {
+                    app.data.comments.push({createdOn:'todo', body: d.body})
+                }
+            })
         </script>
     </body>
 </html>
