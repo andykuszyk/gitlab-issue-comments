@@ -6,9 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/swag"
 	"github.com/xanzy/go-gitlab"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var (
@@ -43,8 +45,8 @@ func GetComments(c *gin.Context) {
 	log.Printf("Found %d issues\n", len(issues))
 	for _, issue := range issues {
 		comments = append(comments, Comment{
-			Subject: issue.Title,
-			Body:    issue.Description,
+			CreatedAt: issue.CreatedAt,
+			Body:      issue.Description,
 		})
 	}
 	bytes, err := json.Marshal(comments)
@@ -59,13 +61,30 @@ func GetComments(c *gin.Context) {
 }
 
 func PostComments(c *gin.Context) {
-	topic := c.Param("topicName")
-	_, _, err := client.Issues.CreateIssue(topic, &gitlab.CreateIssueOptions{
-		Title:       swag.String(""),
-		Description: swag.String(""),
-	})
+	comment := Comment{}
+	err := c.BindJSON(&comment)
 	if err != nil {
 		log.Println(err)
+		c.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if comment.CreatedAt == nil {
+		currentTime := time.Now()
+		comment.CreatedAt = &currentTime
+	}
+	topic := c.Param("topicName")
+	issue, response, err := client.Issues.CreateIssue(topic, &gitlab.CreateIssueOptions{
+		Title:       swag.String("gitlab-issue-comments generated issue"),
+		CreatedAt:   comment.CreatedAt,
+		Description: swag.String(comment.Body),
+	})
+	if err != nil {
+		log.Println(issue)
+		bytes, e := ioutil.ReadAll(response.Body)
+		if e == nil {
+			log.Println(string(bytes))
+		}
+		log.Println(err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		c.Writer.Write([]byte(fmt.Sprintf("%e", err)))
 		return

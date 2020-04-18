@@ -44,8 +44,17 @@
                 <div class="col-md-6 offset-md-3">
                     <h4>Comments</h4>
                     <ul class="timeline">
+                        <li>
+                            <form>
+                                <div class="form-group">
+                                    <label for="commentInput">All comments are welcome, especially constructive ones!</label>
+                                    <textarea v-model="newComment" class="form-control" id="commentInput" rows="3"></textarea>
+                                    <button type="button" class="btn btn-primary" v-on:click="submitComment">Submit</button>
+                                </div>
+                            </form>
+                        </li>
                         <li v-for="comment in comments">
-                            <p><b>{{ comment.createdOn }}</b></p>
+                            <p><b>{{ comment.createdAt }}</b></p>
                             <p>{{ comment.body }}</p>
                         </li>
                     </ul>
@@ -57,16 +66,25 @@
             var app = new Vue({
                 el: '#app',
                 data: {
-                    comments: [
-                        { createdOn: '01/02/2003 00:00', body: 'hello world' }
-                    ]
+                    newComment: '',
+                    comments: []
+                },
+                methods: {
+                    submitComment: function() {
+                        console.log(app.newComment)
+                        $.post({
+                            url: 'http://localhost:8081/topics/18159567/comments',
+                            data: JSON.stringify({Body: app.newComment}), 
+                            contentType: 'application/json'
+                        })
+                    }
                 }
             })
 
             $.get('http://localhost:8081/topics/18159567/comments', function(data) {
                 console.log(typeof(data))
                 for(d of data) {
-                    app.$data.comments.push({createdOn:'todo', body: d.Body})
+                    app.$data.comments.push({createdAt: d.CreatedAt, body: d.Body})
                 }
             })
         </script>

@@ -13,5 +13,5 @@ up:
 watch-up:
 	find . | grep -v .git | entr -c make up 
 
-build-gic:
+build: test
 	docker build -t gic .

@@ -7,11 +7,13 @@ import (
 	"github.com/andykuszyk/gitlab-issue-comments/internal/gic"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	gl "github.com/xanzy/go-gitlab"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 const (
@@ -67,6 +69,8 @@ func (m *mainTest) the_returned_status_code_should_be(code int) *mainTest {
 
 func (m *mainTest) the_comment_should_be_saved_in_gitlab() {
 	require.Len(m.t, gitlab.Comments, 1)
+	require.NotNil(m.t, gitlab.Comments[0].CreatedAt)
+	require.Equal(m.t, gitlab.Comments[0].Body, "body")
 }
 
 func (m *mainTest) and() *mainTest {
@@ -74,9 +78,10 @@ func (m *mainTest) and() *mainTest {
 }
 
 func (m *mainTest) a_valid_comment() *mainTest {
+	currentTime := time.Now()
 	m.comment = gic.Comment{
-		Subject: "subject",
-		Body:    "body",
+		CreatedAt: &currentTime,
+		Body:      "body",
 	}
 	return m
 }
@@ -195,8 +200,17 @@ var response = `
 }`
 
 func (g *gitlabMock) handlePostIssues(c *gin.Context) {
+	issue := gl.Issue{}
+	err := c.BindJSON(&issue)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	c.Writer.Write([]byte(response))
-	g.Comments = append(g.Comments, gic.Comment{})
+	g.Comments = append(g.Comments, gic.Comment{
+		Body:      issue.Description,
+		CreatedAt: issue.CreatedAt,
+	})
 }
 
 func (g *gitlabMock) handleGetIssues(c *gin.Context) {

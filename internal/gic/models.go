@@ -1,6 +1,10 @@
 package gic
 
+import (
+	"time"
+)
+
 type Comment struct {
-	Subject string
-	Body    string
+	CreatedAt *time.Time
+	Body      string
 }

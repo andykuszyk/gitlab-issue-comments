@@ -12,7 +12,7 @@ For now, its a work in progress.
 * A sample UI in `www`.
 
 ## Running locally (TL;DR)
-* Build the web service container: 'make build-gic'
+* Build the web service container: 'make build'
 * Run the docker-compose: 'make up'
 * Visit http://localhost:8080 and add comments.
 
