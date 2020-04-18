@@ -54,6 +54,7 @@ func GetComments(c *gin.Context) {
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	c.Writer.Header().Add("content-type", "application/json")
 	c.Writer.Write(bytes)
 }
 

@@ -64,8 +64,9 @@
             })
 
             $.get('http://localhost:8081/topics/18159567/comments', function(data) {
+                console.log(typeof(data))
                 for(d of data) {
-                    app.data.comments.push({createdOn:'todo', body: d.body})
+                    app.$data.comments.push({createdOn:'todo', body: d.Body})
                 }
             })
         </script>
