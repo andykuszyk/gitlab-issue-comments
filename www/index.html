@@ -68,7 +68,8 @@
                     console.log(typeof(data))
                     comments = []
                     for(d of data) {
-                        comments.push({createdAt: d.CreatedAt, body: d.Body})
+                        createdAt = new Date(d.CreatedAt)
+                        comments.push({createdAt: `${createdAt.getDate()}/${createdAt.getMonth()}/${createdAt.getFullYear()} ${createdAt.getHours()}:${createdAt.getMinutes()}`, body: d.Body})
                     }
                     app.$data.comments = comments
                 })
