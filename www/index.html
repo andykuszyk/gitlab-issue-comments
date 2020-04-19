@@ -69,7 +69,7 @@
                     comments = []
                     for(d of data) {
                         createdAt = new Date(d.CreatedAt)
-                        comments.push({createdAt: `${createdAt.getDate()}/${createdAt.getMonth()}/${createdAt.getFullYear()} ${createdAt.getHours()}:${createdAt.getMinutes()}`, body: d.Body})
+                        comments.push({createdAt: `${createdAt.toLocaleString()}`, body: d.Body})
                     }
                     app.$data.comments = comments
                 })
