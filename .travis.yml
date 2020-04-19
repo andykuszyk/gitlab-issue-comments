@@ -1,0 +1,8 @@
+branches:
+    only:
+    - master
+before_script:
+    - docker login -u $dockerhubuser -p $dockerhubpassword docker.io
+script:
+    - make build
+    - make publish

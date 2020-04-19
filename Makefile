@@ -14,4 +14,7 @@ watch-up:
 	find . | grep -v .git | entr -c make up 
 
 build: test
-	docker build -t gic .
+	docker build -t andykuszyk/gitlab-issue-comments .
+
+publish:
+	docker push andykuszyk/gitlab-issue-comments 
