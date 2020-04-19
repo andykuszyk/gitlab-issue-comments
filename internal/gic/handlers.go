@@ -24,7 +24,7 @@ func init() {
 	}
 	baseUrl := os.Getenv("GITLAB_URL")
 	if baseUrl == "" {
-		baseUrl = "https://www.gitlab.com"
+		baseUrl = "https://gitlab.com"
 	}
 	gitlabClient, err := gitlab.NewClient(token, gitlab.WithBaseURL(baseUrl))
 	if err != nil {
