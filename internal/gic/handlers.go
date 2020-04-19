@@ -73,10 +73,17 @@ func PostComments(c *gin.Context) {
 		comment.CreatedAt = &currentTime
 	}
 	topic := c.Param("topicName")
+	title := comment.Body
+	if len(title) > 50 {
+		title = title[:50]
+	}
 	issue, response, err := client.Issues.CreateIssue(topic, &gitlab.CreateIssueOptions{
-		Title:       swag.String("gitlab-issue-comments generated issue"),
+		Title:       swag.String(title),
 		CreatedAt:   comment.CreatedAt,
 		Description: swag.String(comment.Body),
+		Labels: &gitlab.Labels{
+			"gitlab-issue-comment",
+		},
 	})
 	if err != nil {
 		log.Println(issue)

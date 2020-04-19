@@ -7,8 +7,8 @@ import (
 	"github.com/andykuszyk/gitlab-issue-comments/internal/gic"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
-	gl "github.com/xanzy/go-gitlab"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -199,10 +199,21 @@ var response = `
 }
 }`
 
+type gitlabIssue struct {
+	Description string     `json:"description"`
+	CreatedAt   *time.Time `json:"created_at"`
+	Labels      *string    `json:"labels"`
+}
+
 func (g *gitlabMock) handlePostIssues(c *gin.Context) {
-	issue := gl.Issue{}
+	log.Println("gitlab mock post received")
+	issue := gitlabIssue{}
 	err := c.BindJSON(&issue)
 	if err != nil {
+		bytes, e := ioutil.ReadAll(c.Request.Body)
+		if e == nil {
+			log.Println(string(bytes))
+		}
 		c.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
