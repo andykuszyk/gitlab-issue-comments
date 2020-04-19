@@ -35,7 +35,11 @@ func init() {
 
 func GetComments(c *gin.Context) {
 	topic := c.Param("topicName")
-	issues, _, err := client.Issues.ListProjectIssues(topic, &gitlab.ListProjectIssuesOptions{})
+	issues, _, err := client.Issues.ListProjectIssues(topic, &gitlab.ListProjectIssuesOptions{
+		Labels: gitlab.Labels{
+			"gitlab-issue-comment",
+		},
+	})
 	if err != nil {
 		log.Println(err)
 		c.Writer.WriteHeader(http.StatusInternalServerError)
