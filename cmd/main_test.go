@@ -24,6 +24,12 @@ var (
 	gitlab *gitlabMock
 )
 
+func init() {
+	gitlab = &gitlabMock{
+		Comments: []gic.Comment{},
+	}
+}
+
 func Test_PostComment(t *testing.T) {
 	given, when, then := NewMainTest(t)
 
@@ -119,19 +125,12 @@ func (m *mainTest) there_should_be_n_comments_returned(n int) *mainTest {
 
 func TestMain(m *testing.M) {
 	go main()
-	go runGitlabMock()
+	go gitlab.start()
 	os.Exit(m.Run())
 }
 
 type gitlabMock struct {
 	Comments []gic.Comment
-}
-
-func runGitlabMock() {
-	gitlab = &gitlabMock{
-		Comments: []gic.Comment{},
-	}
-	gitlab.start()
 }
 
 func (g *gitlabMock) start() {
