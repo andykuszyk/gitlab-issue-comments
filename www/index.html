@@ -63,6 +63,17 @@
         </div>
 
         <script>
+            loadComments = function() {
+                $.get('http://localhost:8081/topics/18159567/comments', function(data) {
+                    console.log(typeof(data))
+                    comments = []
+                    for(d of data) {
+                        comments.push({createdAt: d.CreatedAt, body: d.Body})
+                    }
+                    app.$data.comments = comments
+                })
+            }
+
             var app = new Vue({
                 el: '#app',
                 data: {
@@ -76,17 +87,15 @@
                             url: 'http://localhost:8081/topics/18159567/comments',
                             data: JSON.stringify({Body: app.newComment}), 
                             contentType: 'application/json'
+                        }, function() {
+                            loadComments()
+                            app.newComment = ''
                         })
                     }
                 }
             })
 
-            $.get('http://localhost:8081/topics/18159567/comments', function(data) {
-                console.log(typeof(data))
-                for(d of data) {
-                    app.$data.comments.push({createdAt: d.CreatedAt, body: d.Body})
-                }
-            })
+           loadComments() 
         </script>
     </body>
 </html>
